@@ -5,7 +5,7 @@ import random
 # Initialize Pygame
 pygame.init()
 
-WIDTH, HEIGHT = 500, 800
+WIDTH, HEIGHT = 400, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Enemy Dodger")
 
@@ -27,7 +27,7 @@ def draw_window(player_rect, enemy_list):
     pygame.display.update()
 
 def create_enemy(enemy_list):
-    enemy_x_positions = [50, 250, 450]
+    enemy_x_positions = [50, 175, 350]
     while len(enemy_list) < 3:
         x_pos = random.choice(enemy_x_positions)
         y_pos = random.randint(-50, -10)
@@ -40,6 +40,12 @@ def move_enemies(enemy_list):
         if enemy.y > HEIGHT:
             enemy_list.remove(enemy)
 
+def check_collisions(player_rect, enemy_list):
+    for enemy in enemy_list:
+        if player_rect.colliderect(enemy):
+            return True  # Collision detected
+    return False  # No collision
+
 def main():
     running = True
     enemy_list = []
@@ -51,15 +57,19 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        PLAYER.x = mouse_x - PLAYER.width // 2
+        PLAYER.y = mouse_y - PLAYER.height // 2
+        PLAYER.x = max(0, min(WIDTH - PLAYER.width, PLAYER.x))
+        PLAYER.y = max(0, min(HEIGHT - PLAYER.height, PLAYER.y))
+
         move_enemies(enemy_list)
         if len(enemy_list) < 3:
             create_enemy(enemy_list)
 
-        keys = pygame.key.get_pressed()  # Example for keyboard control
-        if keys[pygame.K_LEFT] and PLAYER.x > 0:
-            PLAYER.x -= 5
-        if keys[pygame.K_RIGHT] and PLAYER.x < WIDTH - PLAYER.width:
-            PLAYER.x += 5
+        if check_collisions(PLAYER, enemy_list):
+            print("Collision detected! Game over.")
+            running = False  # End the game on collision
 
         draw_window(PLAYER, enemy_list)
 
